@@ -446,6 +446,50 @@ class TestAlerts:
         assert resp.status_code == 200
         assert "alerts" in data
 
+    async def test_alerts_returns_list(self, app, headers, monkeypatch):
+        import desktop.api_server as api
+
+        class FakeAlert:
+            def to_dict(self):
+                return {"id": "1", "message": "Test alert"}
+
+        class FakeProactive:
+            async def get_alerts(self):
+                return [FakeAlert()]
+
+        monkeypatch.setattr(api, "get_proactive", lambda: FakeProactive())
+
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/alerts", headers=headers)
+            data = await resp.get_json()
+
+        assert resp.status_code == 200
+        assert isinstance(data["alerts"], list)
+        assert len(data["alerts"]) == 1
+        assert data["count"] == 1
+
+    async def test_alerts_requires_auth(self, app):
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/alerts")
+
+        assert resp.status_code == 401
+
+    async def test_alerts_empty(self, app, headers, monkeypatch):
+        import desktop.api_server as api
+
+        class FakeProactive:
+            async def get_alerts(self):
+                return []
+
+        monkeypatch.setattr(api, "get_proactive", lambda: FakeProactive())
+
+        async with app.test_client() as client:
+            resp = await client.get("/api/v1/alerts", headers=headers)
+            data = await resp.get_json()
+
+        assert resp.status_code == 200
+        assert data["alerts"] == []
+        assert data["count"] == 0
 
 class TestVision:
     async def test_vision_analyze_no_image(self, app, headers):
@@ -499,3 +543,5 @@ class TestAuth:
         async with app.test_client() as client:
             resp = await client.get("/api/v1/health")
         assert resp.status_code == 200
+
+
