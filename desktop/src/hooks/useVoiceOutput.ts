@@ -23,6 +23,24 @@ interface UseVoiceOutputReturn {
 
 const VOICE_STORAGE_KEY = 'friday_tts_voice_uri'
 
+export function cleanTextForSpeech(text: string): string {
+  return text
+    // Remove markdown code blocks
+    .replace(/```[\s\S]*?```/g, '')
+    // Remove inline code
+    .replace(/`([^`]+)`/g, '$1')
+    // Remove markdown links [label](url) -> label
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    // Remove markdown header marks, bold, italic, strikethrough
+    .replace(/^#+\s+/gm, '')
+    .replace(/[*_~]/g, '')
+    // Remove emojis and symbols that TTS pronounces verbally
+    .replace(/[\p{Extended_Pictographic}\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0E\uFE0F\u200D]/gu, '')
+    // Normalize spaces
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 export function useVoiceOutput(): UseVoiceOutputReturn {
   const [enabled, setEnabled] = useState(() => {
     const saved = localStorage.getItem('friday_voice_output_enabled')
@@ -75,8 +93,9 @@ export function useVoiceOutput(): UseVoiceOutputReturn {
   }, [])
 
   const speak = useCallback((text: string, options?: SpeakOptions) => {
-    if (!isSupported || !enabled || !text.trim()) return
-    speakQueueRef.current.push({ text, options })
+    const cleaned = cleanTextForSpeech(text)
+    if (!isSupported || !enabled || !cleaned) return
+    speakQueueRef.current.push({ text: cleaned, options })
     processQueue()
   }, [isSupported, enabled, processQueue])
 
