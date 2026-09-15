@@ -1,6 +1,6 @@
 import type { DiaryDay, DiaryPage } from '../types'
 
-const API_BASE = 'http://localhost:8080/api/v1'
+const API_BASE = import.meta.env.VITE_API_BASE || 'http://127.0.0.1:8085/api/v1'
 
 const AUTH_KEY = 'friday_api_secret'
 

@@ -33,8 +33,9 @@ from core.registry import discover_plugins
 from core.security import get_approval_registry
 from core.vision import get_vision_engine
 
-# ─── API Version Prefix ──────────────────────────────────────────
+# ─── API Version Prefix & Port ───────────────────────────────────
 API_PREFIX = "/api/v1"
+SERVER_PORT = int(os.environ.get("PORT", os.environ.get("FRIDAY_PORT", "8085")))
 
 # ─── Shared async HTTP client ────────────────────────────────────
 _async_client: httpx.AsyncClient | None = None
@@ -104,7 +105,7 @@ _load_dotenv()
 
 # ─── Security ────────────────────────────────────────────────────
 _API_SECRET = os.environ.get("API_SECRET", "")
-_FRONTEND_ORIGIN = os.environ.get("FRONTEND_ORIGIN", "http://localhost:5173")
+_FRONTEND_ORIGIN = ["http://localhost:5173", "http://127.0.0.1:5173"]
 
 
 def require_auth(f):
@@ -1042,15 +1043,18 @@ async def privacy_set():
 @app.route(f"{API_PREFIX}/auth/google")
 @require_auth
 async def google_auth():
-    from core.auth.google import get_auth_url, is_authenticated
+    try:
+        from core.auth.google import get_auth_url, is_authenticated
 
-    if is_authenticated():
-        return jsonify({"status": "authenticated"})
-    redirect = f"http://localhost:8080{API_PREFIX}/auth/google/callback"
-    url = get_auth_url(redirect)
-    if not url:
-        return jsonify({"status": "missing_credentials", "message": "Put google_credentials.json in memory_store/"})
-    return jsonify({"status": "needs_auth", "url": url})
+        if is_authenticated():
+            return jsonify({"status": "authenticated"})
+        redirect = f"http://localhost:{SERVER_PORT}{API_PREFIX}/auth/google/callback"
+        url = get_auth_url(redirect)
+        if not url:
+            return jsonify({"status": "missing_credentials", "message": "Put google_credentials.json in memory_store/"})
+        return jsonify({"status": "needs_auth", "url": url})
+    except Exception as e:
+        return jsonify({"status": "missing_credentials", "message": str(e)})
 
 
 @app.route(f"{API_PREFIX}/auth/google/callback")
@@ -1059,7 +1063,7 @@ async def google_auth_callback():
 
     code = request.args.get("code", "")
     state = request.args.get("state", "")
-    redirect = f"http://localhost:8080{API_PREFIX}/auth/google/callback"
+    redirect = f"http://localhost:{SERVER_PORT}{API_PREFIX}/auth/google/callback"
     ok = handle_callback(code, state, redirect)
     if ok:
         return "<html><body><h3>Authenticated!</h3><p>You can close this tab and return to Friday.</p><script>window.close()</script></body></html>"
@@ -1605,7 +1609,7 @@ if __name__ == "__main__":
     from hypercorn.config import Config
 
     cfg = Config()
-    cfg.bind = ["127.0.0.1:8080"]
+    cfg.bind = [f"0.0.0.0:{SERVER_PORT}"]
     cfg.keep_alive_timeout = 300
     cfg.body_timeout = 300
     loop = asyncio.new_event_loop()

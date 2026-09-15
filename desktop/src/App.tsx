@@ -671,7 +671,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
           setAutopilotRun(prev => prev ? { ...prev, phase: 'aborted', abortedReason: err?.message || 'error' } : prev)
           state.updateMessages(msgs => msgs.map(m =>
             m.id === aid ? { ...m, content: isNetwork
-              ? 'Backend offline — start `python api_server.py` on port 8080'
+              ? 'Backend offline — start `python api_server.py` on port 8085'
               : `Error: ${err.message || JSON.stringify(err)}`, streaming: false } : m
           ))
           state.setOrb('error')
@@ -740,7 +740,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
         if (isNetwork) setBackendOnline(false)
         state.updateMessages(msgs => msgs.map(m =>
           m.id === aid ? { ...m, content: isNetwork
-            ? 'Backend offline — start `python api_server.py` on port 8080'
+            ? 'Backend offline — start `python api_server.py` on port 8085'
             : `Error: ${err.message || JSON.stringify(err)}`, streaming: false } : m
         ))
         state.setOrb('error')
@@ -937,7 +937,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-xs"
           style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#fca5a5' }}
         >
-          Backend offline — start <code style={{ color: '#fbbf24' }}>python api_server.py</code> on port 8080
+          Backend offline — start <code style={{ color: '#fbbf24' }}>python api_server.py</code> on port 8085
         </div>
       )}
       {backendOnline && !sseConnected && (

@@ -5,6 +5,7 @@ from config.settings import (
     MAX_TOKENS,
     MODEL,
     OLLAMA_BASE_URL,
+    SYSTEM_NAME,
     SYSTEM_PROMPT_EN,
     SYSTEM_PROMPT_HI,
     TEMPERATURE,

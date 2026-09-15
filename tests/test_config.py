@@ -1,7 +1,10 @@
-from config import MAX_ITERATIONS, MODEL, OLLAMA_BASE_URL, get_system_prompt
+from config import MAX_ITERATIONS, MODEL, OLLAMA_BASE_URL, SYSTEM_NAME, get_system_prompt
 
 
 class TestConfig:
+    def test_system_name(self):
+        assert SYSTEM_NAME == "ark"
+
     def test_ollama_url_default(self):
         assert OLLAMA_BASE_URL == "http://localhost:11434"
 

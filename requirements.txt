@@ -9,6 +9,7 @@ requests>=2.34.2
 pyttsx3>=2.99
 pillow>=12.3.0
 pyautogui>=0.9.54
+openai>=1.0.0
 
 # Development
 pytest>=9.1.1

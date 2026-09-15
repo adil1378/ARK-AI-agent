@@ -421,7 +421,7 @@ export const IntelligencePanel = memo(function IntelligencePanel({
             {!news.length && !weather && !stocks.length && !repos.length && !earthquakes?.length && !crypto?.length && !space && !cve?.length && !clocks?.length && (
               <div className="col-span-2 flex flex-col items-center justify-center py-16 text-xs" style={{ color: '#666' }}>
                 <span className="text-2xl mb-2">📡</span>
-                <span>Connect backend on port 8080</span>
+                <span>Connect backend on port 8085</span>
                 <span className="text-[10px] mt-1" style={{ color: '#444' }}>python api_server.py</span>
               </div>
             )}
