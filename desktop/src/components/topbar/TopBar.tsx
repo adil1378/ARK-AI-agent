@@ -15,6 +15,10 @@ interface StatusRibbonProps {
   ambientActive?: boolean
   onExitAmbient?: () => void
   persona?: string
+  sidebarOpen?: boolean
+  onToggleSidebar?: () => void
+  rightSidebarOpen?: boolean
+  onToggleRightSidebar?: () => void
 }
 
 const ORB_LABELS: Record<string, string> = {
@@ -34,6 +38,7 @@ export const StatusRibbon = memo(function StatusRibbon({
   systemInfo, latency, orbState, memory, backendOnline, onCommandPalette,
   voiceOutputEnabled, onToggleVoiceOutput, voiceInputStatus, voiceOutputStatus,
   ambientActive, onExitAmbient, persona,
+  sidebarOpen, onToggleSidebar, rightSidebarOpen, onToggleRightSidebar,
 }: StatusRibbonProps) {
   const [time, setTime] = useState('')
   useEffect(() => {
@@ -175,6 +180,36 @@ export const StatusRibbon = memo(function StatusRibbon({
         <span className="font-mono text-[10px]">⌘</span>
         <span className="text-[10px]">cmd</span>
       </button>
+
+      {onToggleSidebar && (
+        <button
+          onClick={onToggleSidebar}
+          className="flex items-center gap-1 shrink-0 transition-all hover:bg-white/[.04] px-2 py-0.5 rounded text-[10px]"
+          style={{
+            color: sidebarOpen ? 'var(--blue)' : '#606068',
+            background: sidebarOpen ? 'rgba(0,168,255,0.08)' : 'transparent',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+          title={sidebarOpen ? 'Hide sessions sidebar' : 'Show sessions sidebar'}
+        >
+          <span>SESSIONS</span>
+        </button>
+      )}
+
+      {onToggleRightSidebar && (
+        <button
+          onClick={onToggleRightSidebar}
+          className="flex items-center gap-1 shrink-0 transition-all hover:bg-white/[.04] px-2 py-0.5 rounded text-[10px]"
+          style={{
+            color: rightSidebarOpen ? 'var(--blue)' : '#606068',
+            background: rightSidebarOpen ? 'rgba(0,168,255,0.08)' : 'transparent',
+            border: '1px solid rgba(255,255,255,0.08)',
+          }}
+          title={rightSidebarOpen ? 'Hide intelligence sidebar' : 'Show intelligence sidebar'}
+        >
+          <span>INTEL</span>
+        </button>
+      )}
     </div>
   )
 })

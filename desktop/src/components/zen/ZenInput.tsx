@@ -44,6 +44,50 @@ export const ZenInput = memo(function ZenInput({
       ? 'rgba(255,255,255,0.2)'
       : 'rgba(255,255,255,0.08)'
 
+  const isHoldingVoiceRef = useRef(false)
+  const voiceHoldTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const handleVoiceMouseDown = () => {
+    isHoldingVoiceRef.current = false
+    if (!isListening) {
+      voiceHoldTimerRef.current = setTimeout(() => {
+        isHoldingVoiceRef.current = true
+      }, 350)
+      onVoiceStart()
+    }
+  }
+
+  const handleVoiceMouseUp = () => {
+    if (voiceHoldTimerRef.current) {
+      clearTimeout(voiceHoldTimerRef.current)
+      voiceHoldTimerRef.current = null
+    }
+    if (isHoldingVoiceRef.current && isListening) {
+      isHoldingVoiceRef.current = false
+      const transcript = onVoiceStop()
+      if (transcript && transcript.trim()) {
+        setValue('')
+        onSend(transcript.trim())
+      }
+    }
+  }
+
+  const handleVoiceClick = () => {
+    if (isHoldingVoiceRef.current) {
+      isHoldingVoiceRef.current = false
+      return
+    }
+    if (isListening) {
+      const transcript = onVoiceStop()
+      if (transcript && transcript.trim()) {
+        setValue('')
+        onSend(transcript.trim())
+      }
+    } else {
+      onVoiceStart()
+    }
+  }
+
   return (
     <div className="flex justify-center px-8 pb-6 pt-3">
       <div className="w-full max-w-[720px]">
@@ -96,22 +140,11 @@ export const ZenInput = memo(function ZenInput({
             <div className="absolute right-2 bottom-2 flex items-center gap-1.5">
               {isVoiceSupported && (
                 <button
-                  onMouseDown={onVoiceStart}
-                  onMouseUp={() => {
-                    const transcript = onVoiceStop()
-                    if (transcript.trim()) {
-                      setValue('')
-                      onSend(transcript.trim())
-                    }
-                  }}
-                  onTouchStart={onVoiceStart}
-                  onTouchEnd={() => {
-                    const transcript = onVoiceStop()
-                    if (transcript.trim()) {
-                      setValue('')
-                      onSend(transcript.trim())
-                    }
-                  }}
+                  onMouseDown={handleVoiceMouseDown}
+                  onMouseUp={handleVoiceMouseUp}
+                  onTouchStart={handleVoiceMouseDown}
+                  onTouchEnd={handleVoiceMouseUp}
+                  onClick={handleVoiceClick}
                   className="h-9 w-9 rounded-xl flex items-center justify-center transition-all duration-300 active:scale-90"
                   style={{
                     background: isListening ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.06)',

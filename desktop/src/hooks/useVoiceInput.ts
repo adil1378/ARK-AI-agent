@@ -24,6 +24,8 @@ export function useVoiceInput(): UseVoiceInputReturn {
 
   const recognitionRef = useRef<any>(null)
   const finalRef = useRef('')
+  const interimRef = useRef('')
+  const isListeningRef = useRef(false)
   const autoRestartRef = useRef(false)
   const restartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const langRef = useRef('en-US')
@@ -36,10 +38,12 @@ export function useVoiceInput(): UseVoiceInputReturn {
     setInterimTranscript('')
     setFinalTranscript('')
     finalRef.current = ''
+    interimRef.current = ''
     setError(null)
   }, [])
 
   const cancelAutoRestart = useCallback(() => {
+    isListeningRef.current = false
     autoRestartRef.current = false
     if (restartTimerRef.current) {
       clearTimeout(restartTimerRef.current)
@@ -54,6 +58,7 @@ export function useVoiceInput(): UseVoiceInputReturn {
     }
 
     cancelAutoRestart()
+    isListeningRef.current = true
     autoRestartRef.current = autoRestart ?? false
 
     if (recognitionRef.current) {
@@ -75,17 +80,21 @@ export function useVoiceInput(): UseVoiceInputReturn {
       for (let i = event.resultIndex; i < event.results.length; i++) {
         const transcript = event.results[i][0].transcript
         if (event.results[i].isFinal) {
-          finalRef.current += transcript
+          finalRef.current = (finalRef.current ? finalRef.current + ' ' : '') + transcript.trim()
           setFinalTranscript(finalRef.current)
         } else {
           interim += transcript
         }
       }
+      interimRef.current = interim
       setInterimTranscript(interim)
     }
 
     recognition.onerror = (event: any) => {
       if (event.error === 'no-speech' || event.error === 'aborted') {
+        if (isListeningRef.current) {
+          return
+        }
         setStatus('idle')
         if (autoRestartRef.current) {
           restartTimerRef.current = setTimeout(() => {
@@ -95,12 +104,28 @@ export function useVoiceInput(): UseVoiceInputReturn {
           }, RESTART_DEBOUNCE)
         }
       } else {
+        isListeningRef.current = false
         setStatus('error')
         setError(event.error)
       }
     }
 
     recognition.onend = () => {
+      if (isListeningRef.current) {
+        try {
+          recognition.start()
+        } catch {
+          restartTimerRef.current = setTimeout(() => {
+            if (isListeningRef.current) {
+              try {
+                recognitionRef.current?.start()
+              } catch {}
+            }
+          }, 150)
+        }
+        return
+      }
+
       setStatus('idle')
       setInterimTranscript('')
       if (autoRestartRef.current) {
@@ -116,18 +141,21 @@ export function useVoiceInput(): UseVoiceInputReturn {
     setStatus('listening')
     setError(null)
     finalRef.current = ''
+    interimRef.current = ''
     setFinalTranscript('')
     setInterimTranscript('')
 
     try {
       recognition.start()
     } catch {
+      isListeningRef.current = false
       setStatus('error')
       setError('Failed to start recognition')
     }
   }, [isSupported, cancelAutoRestart])
 
   const stopListening = useCallback((): string => {
+    isListeningRef.current = false
     autoRestartRef.current = false
     if (restartTimerRef.current) {
       clearTimeout(restartTimerRef.current)
@@ -137,12 +165,18 @@ export function useVoiceInput(): UseVoiceInputReturn {
       try { recognitionRef.current.stop() } catch {}
       recognitionRef.current = null
     }
-    const transcript = finalRef.current
-    return transcript
+    setStatus('idle')
+    const finalPart = finalRef.current.trim()
+    const interimPart = interimRef.current.trim()
+    const combined = [finalPart, interimPart].filter(Boolean).join(' ')
+    setInterimTranscript('')
+    interimRef.current = ''
+    return combined
   }, [])
 
   useEffect(() => {
     return () => {
+      isListeningRef.current = false
       autoRestartRef.current = false
       if (restartTimerRef.current) {
         clearTimeout(restartTimerRef.current)

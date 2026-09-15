@@ -65,6 +65,7 @@ interface IntelligencePanelProps {
   holodeckExpanded?: boolean
   onHolodeckToggle?: () => void
   diaryRefreshToken?: number
+  onClose?: () => void
 }
 
 const timeAgo = (dateStr: string) => {
@@ -394,7 +395,7 @@ export const IntelligencePanel = memo(function IntelligencePanel({
   automations, onAutomationToggle, onAutomationDelete, onAutomationTrigger,
   visionScreenResult, visionCameraResult, onVisionCaptureCamera, onVisionCaptureScreen, visionAnalyzing,
   holodeckMetrics, holodeckGesturePosition, holodeckGestureOpenness, holodeckExpanded, onHolodeckToggle,
-  diaryRefreshToken,
+  diaryRefreshToken, onClose,
 }: IntelligencePanelProps) {
   return (
     <div
@@ -408,6 +409,16 @@ export const IntelligencePanel = memo(function IntelligencePanel({
         <span className="text-[11px] font-medium tracking-[0.2em]" style={{ color: '#666' }}>
           INTELLIGENCE
         </span>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="w-6 h-6 flex items-center justify-center rounded-md text-xs transition-all hover:bg-white/[.08] active:scale-95"
+            style={{ color: '#888' }}
+            title="Close intelligence panel"
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       <div className="flex-1 p-4 overflow-y-auto intel-scroll" style={{ scrollbarWidth: 'thin' }}>

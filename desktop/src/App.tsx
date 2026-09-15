@@ -51,6 +51,7 @@ function showNativeNotification(title: string, body: string) {
 
 function App() {
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [rightSidebarOpen, setRightSidebarOpen] = useState(true)
   const [commandOpen, setCommandOpen] = useState(false)
   const [camActive, setCamActive] = useState(false)
   const [backendOnline, setBackendOnline] = useState(true)
@@ -889,6 +890,7 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
     { id: 'toggle-zen', label: zen ? 'Exit zen mode (dashboard)' : 'Enter zen mode', action: () => state.toggleZen() },
     { id: 'toggle-handsfree', label: handsFree ? 'Disable hands-free listening' : 'Enable hands-free listening', action: handleToggleHandsFree },
     { id: 'toggle-sidebar', label: 'Toggle sessions sidebar', action: () => setSidebarOpen(o => !o) },
+    { id: 'toggle-right-sidebar', label: rightSidebarOpen ? 'Hide intelligence sidebar' : 'Show intelligence sidebar', action: () => setRightSidebarOpen(o => !o) },
 
     { id: 'toggle-camera', label: 'Gesture control', action: toggleCamera },
     { id: 'toggle-voice-output', label: 'Toggle voice output', action: handleToggleVoiceOutput },
@@ -1071,6 +1073,10 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
           ambientActive={ambientActive}
           onExitAmbient={exitAmbient}
           persona={persona}
+          sidebarOpen={sidebarOpen}
+          onToggleSidebar={() => setSidebarOpen(o => !o)}
+          rightSidebarOpen={rightSidebarOpen}
+          onToggleRightSidebar={() => setRightSidebarOpen(o => !o)}
         />
 
         <div className="flex-1 flex min-h-0">
@@ -1156,58 +1162,61 @@ const [pendingApproval, setPendingApproval] = useState<ApprovalRequest | null>(n
             />
           </main>
 
-          <Suspense fallback={<div className="w-80 shrink-0" />}>
-            <IntelligencePanel
-              news={news}
-              weather={weather}
-              stocks={stocks}
-              repos={repos}
-              systemInfo={systemInfo}
-              recentTools={recentTools}
-              loading={!dataLoaded}
-              earthquakes={earthquakes}
-              crypto={crypto}
-              space={space}
-              cve={cve}
-              clocks={clocks}
-              memoryData={memoryData}
-              onMemoryDelete={handleDeleteMemory}
-              screenData={screenData}
-              computerStatus={computerStatus}
-              onRefreshComputer={() => {
-                getComputerStatus().then(d => { setComputerReady(Boolean(d.mouse_keyboard && d.window_management)); setComputerStatus(d) }).catch(() => {})
-              }}
-              calendarEvents={calendarEvents}
-              calendarAuth={calendarAuth}
-              emailMessages={emailMessages}
-              emailUnread={emailUnread}
-              emailAuth={emailAuth}
-              onCalendarConnect={handleGoogleConnect}
-              onEmailConnect={handleGoogleConnect}
-              briefing={briefing}
-              onPlayBriefing={playBriefing}
-              voiceOutputEnabled={voiceOutputEnabled}
-              automations={automations}
-              onAutomationToggle={handleAutomationToggle}
-              onAutomationDelete={handleAutomationDelete}
-              onAutomationTrigger={handleAutomationTrigger}
-              visionScreenResult={visionScreenResult}
-              visionCameraResult={visionCameraResult}
-              onVisionCaptureCamera={handleVisionCaptureCamera}
-              onVisionCaptureScreen={handleVisionCaptureScreen}
-              visionAnalyzing={visionAnalyzing}
-              holodeckMetrics={{
-                latency: metricsState.latency,
-                memory: metricsState.memory,
-                tokenUsage: metricsState.tokenUsage,
-              }}
-              holodeckGesturePosition={handPosition ?? undefined}
-              holodeckGestureOpenness={openness ?? undefined}
-              holodeckExpanded={holodeckExpanded}
-              onHolodeckToggle={() => setHolodeckExpanded(e => !e)}
-              diaryRefreshToken={diaryRefreshToken}
-            />
-          </Suspense>
+          {rightSidebarOpen && (
+            <Suspense fallback={<div className="w-80 shrink-0" />}>
+              <IntelligencePanel
+                news={news}
+                weather={weather}
+                stocks={stocks}
+                repos={repos}
+                systemInfo={systemInfo}
+                recentTools={recentTools}
+                loading={!dataLoaded}
+                earthquakes={earthquakes}
+                crypto={crypto}
+                space={space}
+                cve={cve}
+                clocks={clocks}
+                memoryData={memoryData}
+                onMemoryDelete={handleDeleteMemory}
+                screenData={screenData}
+                computerStatus={computerStatus}
+                onRefreshComputer={() => {
+                  getComputerStatus().then(d => { setComputerReady(Boolean(d.mouse_keyboard && d.window_management)); setComputerStatus(d) }).catch(() => {})
+                }}
+                calendarEvents={calendarEvents}
+                calendarAuth={calendarAuth}
+                emailMessages={emailMessages}
+                emailUnread={emailUnread}
+                emailAuth={emailAuth}
+                onCalendarConnect={handleGoogleConnect}
+                onEmailConnect={handleGoogleConnect}
+                briefing={briefing}
+                onPlayBriefing={playBriefing}
+                voiceOutputEnabled={voiceOutputEnabled}
+                automations={automations}
+                onAutomationToggle={handleAutomationToggle}
+                onAutomationDelete={handleAutomationDelete}
+                onAutomationTrigger={handleAutomationTrigger}
+                visionScreenResult={visionScreenResult}
+                visionCameraResult={visionCameraResult}
+                onVisionCaptureCamera={handleVisionCaptureCamera}
+                onVisionCaptureScreen={handleVisionCaptureScreen}
+                visionAnalyzing={visionAnalyzing}
+                holodeckMetrics={{
+                  latency: metricsState.latency,
+                  memory: metricsState.memory,
+                  tokenUsage: metricsState.tokenUsage,
+                }}
+                holodeckGesturePosition={handPosition ?? undefined}
+                holodeckGestureOpenness={openness ?? undefined}
+                holodeckExpanded={holodeckExpanded}
+                onHolodeckToggle={() => setHolodeckExpanded(e => !e)}
+                diaryRefreshToken={diaryRefreshToken}
+                onClose={() => setRightSidebarOpen(false)}
+              />
+            </Suspense>
+          )}
         </div>
         </>
         )}
