@@ -419,6 +419,17 @@ async def metrics():
     return jsonify(get_metrics())
 
 
+@app.route("/")
+async def root():
+    return jsonify({
+        "status": "ok",
+        "service": "ARK AI Agent API",
+        "version": "v1",
+        "frontend": "http://localhost:5173",
+        "health": f"{API_PREFIX}/health",
+    })
+
+
 @app.route(f"{API_PREFIX}/health")
 async def health():
     return jsonify({"status": "ok", "sessions": len(_agents)})
